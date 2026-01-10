@@ -3,10 +3,24 @@ import numpy as np # linear algebra
 import struct
 from array import array
 from os.path  import join
+import matplotlib.pyplot as plt
+
 
 #
 # MNIST Data Loader Class
 #
+def show_result(x_test, y_test, y_pred, num_show = 5):
+    count = 0
+    for i in range(y_test.shape[0]):
+        if (y_pred[i] != y_test[i]):
+            if count <= num_show:
+                plt.imshow(x_test[i].reshape(28, 28), cmap='gray')
+                plt.title(f"Predicted: {y_pred[i]}, Label: {y_test[i]}")
+                plt.axis('off')
+                plt.show()
+            count += 1
+    print(f"Number of wrong prediction: {count}")
+    print(f"Number of test sample: {y_test.shape[0]}")
 class MnistDataloader(object):
     def __init__(self, training_images_filepath,training_labels_filepath,
                  test_images_filepath, test_labels_filepath):
