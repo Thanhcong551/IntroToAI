@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 # Load the pre-trained MNIST model
-model = tf.keras.models.load_model('mnist_model.h5')  
+model = tf.keras.models.load_model('mnist_cnn_model.h5')  
 
 cap = cv2.VideoCapture(0)
 
@@ -93,7 +93,7 @@ while True:
 
                 dx, dy, dw, dh = cv2.boundingRect(contour)
                 digit_boxes.append((dx, dy, dw, dh))
-
+                
             digit_boxes = sorted(digit_boxes, key=lambda b: b[0])
 
             recognized_digits = []
