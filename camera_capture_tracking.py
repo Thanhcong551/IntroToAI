@@ -3,23 +3,22 @@ import numpy as np
 import tensorflow as tf
 
 # Load the pre-trained MNIST model
-model = tf.keras.models.load_model('mnist_cnn_model.h5')  
+model = tf.keras.models.load_model("mnist_cnn_model.keras")
 
 cap = cv2.VideoCapture(0)
 
 captured_frame = None
 analyzed = False
 
+
 def preprocess_image(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.adaptiveThreshold(
-        blur, 255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV,
-        11, 2
+        blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2
     )
     return thresh
+
 
 def find_largest_rectangle(thresh):
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -38,6 +37,7 @@ def find_largest_rectangle(thresh):
 
     return biggest
 
+
 def make_mnist_style(img):
     h, w = img.shape
 
@@ -53,7 +53,7 @@ def make_mnist_style(img):
     y_offset = (28 - new_h) // 2
     x_offset = (28 - new_w) // 2
 
-    canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
+    canvas[y_offset : y_offset + new_h, x_offset : x_offset + new_w] = resized
 
     return canvas
 
@@ -76,9 +76,11 @@ while True:
             cv2.drawContours(display_frame, [box], -1, (255, 0, 0), 3)
 
             x, y, w, h = cv2.boundingRect(box)
-            roi = thresh[y:y+h, x:x+w]
+            roi = thresh[y : y + h, x : x + w]
 
-            contours, _ = cv2.findContours(roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(
+                roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            )
 
             digit_boxes = []
 
@@ -93,14 +95,14 @@ while True:
 
                 dx, dy, dw, dh = cv2.boundingRect(contour)
                 digit_boxes.append((dx, dy, dw, dh))
-                
+
             digit_boxes = sorted(digit_boxes, key=lambda b: b[0])
 
             recognized_digits = []
 
-            for (dx, dy, dw, dh) in digit_boxes:
-                digit_image = roi[dy:dy+dh, dx:dx+dw]
-                
+            for dx, dy, dw, dh in digit_boxes:
+                digit_image = roi[dy : dy + dh, dx : dx + dw]
+
                 digit_image = make_mnist_style(digit_image)
                 digit_image = digit_image / 255.0
                 digit_image = np.expand_dims(digit_image, axis=-1)
@@ -110,33 +112,67 @@ while True:
                 digit = np.argmax(prediction)
                 recognized_digits.append(str(digit))
 
-                cv2.rectangle(display_frame, (x+dx, y+dy), (x+dx+dw, y+dy+dh), (0, 255, 0), 2)
-                cv2.putText(display_frame, str(digit), (x+dx, y+dy-10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.rectangle(
+                    display_frame,
+                    (x + dx, y + dy),
+                    (x + dx + dw, y + dy + dh),
+                    (0, 255, 0),
+                    2,
+                )
+                cv2.putText(
+                    display_frame,
+                    str(digit),
+                    (x + dx, y + dy - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 255, 0),
+                    2,
+                )
 
             if recognized_digits:
                 number_str = "".join(recognized_digits)
-                cv2.putText(display_frame, f"Number: {number_str}", (10, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
+                cv2.putText(
+                    display_frame,
+                    f"Number: {number_str}",
+                    (10, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2,
+                    (0, 0, 255),
+                    3,
+                )
         else:
-            cv2.putText(display_frame, "No box detected", (10, 40),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.putText(
+                display_frame,
+                "No box detected",
+                (10, 40),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 0, 255),
+                2,
+            )
 
-    cv2.putText(display_frame, "C: Capture  R: Reset  Q: Quit", (10, display_frame.shape[0]-10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    cv2.putText(
+        display_frame,
+        "C: Capture  R: Reset  Q: Quit",
+        (10, display_frame.shape[0] - 10),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (255, 255, 255),
+        2,
+    )
 
     cv2.imshow("Digit Recognition Demo", display_frame)
 
     key = cv2.waitKey(1) & 0xFF
 
-    if key == ord('c') and not analyzed:
+    if key == ord("c") and not analyzed:
         captured_frame = frame.copy()
         analyzed = True
 
-    elif key == ord('r'):
+    elif key == ord("r"):
         analyzed = False
 
-    elif key == ord('q'):
+    elif key == ord("q"):
         break
 
 cap.release()
